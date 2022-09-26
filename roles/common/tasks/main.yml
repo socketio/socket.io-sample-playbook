@@ -1,0 +1,7 @@
+---
+
+- name: Ensure the /apps directory exists
+  file:
+    path: /apps
+    state: directory
+    mode: "0755"

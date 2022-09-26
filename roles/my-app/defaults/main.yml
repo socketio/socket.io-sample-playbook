@@ -1,0 +1,5 @@
+APP_LOCATION: /apps/my-app
+LOGS_LOCATION: /var/log/my-app
+
+RUNNER_USER: my-app-runner
+RUNNER_GROUP: my-app-runner

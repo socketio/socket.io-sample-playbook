@@ -1,0 +1,15 @@
+{
+  "name": "my-app",
+  "version": "0.0.1",
+  "description": "Sample app",
+  "author": "Damien Arrachequesne <damien.arrachequesne@gmail.com>",
+  "license": "ISC",
+  "private": true,
+  "main": "src/index.js",
+  "type": "module",
+  "dependencies": {
+    "@socket.io/cluster-adapter": "^0.2.0",
+    "@socket.io/sticky": "^1.0.1",
+    "socket.io": "^4.5.2"
+  }
+}

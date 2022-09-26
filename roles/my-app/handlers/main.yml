@@ -1,0 +1,17 @@
+---
+
+- name: restart application
+  service:
+    name: my-app
+    state: restarted
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: reload kernel parameters
+  command: sysctl --system
+
+- name: reload nginx
+  service:
+    name: nginx
+    state: reloaded

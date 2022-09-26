@@ -1,0 +1,104 @@
+---
+
+- name: Ensure the runner group exists
+  group:
+    name: "{{ RUNNER_GROUP }}"
+    state: present
+
+- name: Ensure the runner user exists
+  user:
+    name: "{{ RUNNER_USER }}"
+    comment: Runner for the sample Socket.IO application
+    group: "{{ RUNNER_GROUP }}"
+
+- name: Ensure directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ RUNNER_USER }}"
+    group: "{{ RUNNER_GROUP }}"
+    mode: "0700"
+  with_items:
+    - "{{ APP_LOCATION }}"
+    - "{{ LOGS_LOCATION }}"
+
+- name: Copy the service file
+  template:
+    src: service.j2
+    dest: /etc/systemd/system/my-app.service
+    owner: "{{ RUNNER_USER }}"
+    group: "{{ RUNNER_GROUP }}"
+    mode: "0644"
+  notify:
+    - reload systemd
+
+- name: Synchronize the package.json file
+  synchronize:
+    src: "{{ item }}"
+    dest: "{{ APP_LOCATION }}"
+    checksum: yes
+    rsync_opts:
+      - "--chmod=0600"
+      - "--chown={{ RUNNER_USER }}:{{ RUNNER_GROUP }}"
+  loop:
+    - app/package.json
+    - app/package-lock.json
+  register: dependencies
+
+- name: Install packages
+  when: dependencies.changed
+  become: true
+  become_user: "{{ RUNNER_USER }}"
+  npm:
+    path: "{{ APP_LOCATION }}"
+    state: present
+    ci: true
+
+- name: Synchronize the source files
+  synchronize:
+    src: app/src/
+    dest: "{{ APP_LOCATION }}/src/"
+    checksum: yes
+    delete: yes
+    rsync_opts:
+      - "--chmod=D700,F600"
+      - "--chown={{ RUNNER_USER }}:{{ RUNNER_GROUP }}"
+  notify:
+    - restart application
+
+- name: Ensure application is started
+  service:
+    name: my-app
+    state: started
+    enabled: true
+
+- name: Copy nginx configuration file
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/my-app.conf
+    owner: www-data
+    group: www-data
+    mode: "0400"
+  notify:
+    - reload nginx
+
+# reference: https://socket.io/docs/v4/performance-tuning/#at-the-os-level
+
+- name: Increase the number of available local ports
+  copy:
+    content: |
+      net.ipv4.ip_local_port_range = 10000 65535
+    dest: /etc/sysctl.d/net.ipv4.ip_local_port_range.conf
+    mode: "0644"
+  notify:
+    - reload kernel parameters
+
+- name: Increase the nofile limits for the runner user
+  copy:
+    content: |
+      {{ RUNNER_USER }} soft nofile 100000
+      {{ RUNNER_USER }} hard nofile 100000
+    dest: /etc/security/limits.d/my-app-limits.conf
+    mode: "0644"
+  notify:
+    - restart application

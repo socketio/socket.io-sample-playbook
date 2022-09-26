@@ -1,0 +1,6 @@
+---
+
+dependencies:
+  - role: common
+  - role: nginx
+  - role: nodejs

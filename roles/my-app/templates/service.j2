@@ -1,0 +1,14 @@
+[Unit]
+Description = A sample Socket.IO application
+After = network.target
+
+[Service]
+User = {{ RUNNER_USER }}
+ExecStart = /usr/bin/node {{ APP_LOCATION }}/src/index.js
+StandardOutput = append:{{ LOGS_LOCATION }}/app.log
+StandardError = append:{{ LOGS_LOCATION }}/app.log
+Restart = on-failure
+RestartSec = 2s
+
+[Install]
+WantedBy = multi-user.target

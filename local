@@ -1,0 +1,4 @@
+app01 ansible_host=127.0.0.1 ansible_port=30022 ansible_user=root ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+[app]
+app01
