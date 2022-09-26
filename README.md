@@ -3,6 +3,7 @@
 This repository contains an Ansible playbook to set up a basic Socket.IO application.
 
 - [Usage](#usage)
+- [How to deploy on AWS](#how-to-deploy-on-aws)
 - [Architecture](#architecture)
 - [Notes](#notes)
   - [Scaling](#scaling)
@@ -15,6 +16,59 @@ $ make I=local ping
 
 # install the Node.js application
 $ make I=local install
+```
+
+## How to deploy on AWS
+
+- clone this repository
+
+```
+$ git clone git@github.com:socketio/socket.io-sample-playbook.git
+```
+
+- create an EC2 instance with the [AWS console](https://aws.amazon.com/console/)
+
+- create a `dev` inventory file with the following content:
+
+```
+app01 ansible_host=<public IP address of your instance> ansible_user=ubuntu ansible_ssh_private_key_file=<private key file>
+
+[app]
+app01
+```
+
+Reference: https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
+
+- and then run
+
+```
+$ make I=dev install
+```
+
+You can then check the status of your application on the instance:
+
+```
+$ ssh ubuntu@<public IP address of your instance>
+
+$ service my-app status
+● my-app.service - A sample Socket.IO application
+     Loaded: loaded (/etc/systemd/system/my-app.service; enabled; vendor preset: enabled)
+     Active: active (running)
+   Main PID: 437 (node)
+      Tasks: 22 (limit: 1143)
+     Memory: 68.9M
+        CPU: 414ms
+     CGroup: /system.slice/my-app.service
+             ├─437 /usr/bin/node /apps/my-app/src/index.js
+             └─712 /usr/bin/node /apps/my-app/src/index.js
+
+$ sudo tail /var/log/my-app/app.log
+
+2022-09-26T09:06:42.422Z Worker 712: 0 connected client(s)
+2022-09-26T09:06:47.427Z Worker 712: 0 connected client(s)
+2022-09-26T09:06:52.433Z Worker 712: 0 connected client(s)
+2022-09-26T09:06:57.432Z Worker 712: 0 connected client(s)
+2022-09-26T09:07:02.438Z Worker 712: 0 connected client(s)
 ```
 
 ## Architecture

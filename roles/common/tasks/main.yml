@@ -5,3 +5,10 @@
     path: /apps
     state: directory
     mode: "0755"
+
+# needed for running "npm install" as an unprivileged user
+# reference: https://docs.ansible.com/ansible/latest/user_guide/become.html#resolving-temporary-file-error-messsages
+- name: Install the acl package
+  apt:
+    name: acl
+    state: present
